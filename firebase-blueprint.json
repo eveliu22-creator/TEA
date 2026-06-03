@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Drink": {
+      "title": "Drink",
+      "description": "A beverage menu item, containing price, category, and status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "priceLarge": { "type": "number" },
+        "isAvailable": { "type": "boolean" },
+        "tags": { "type": "array" },
+        "hasSizeM": { "type": "boolean" },
+        "hasSizeL": { "type": "boolean" }
+      },
+      "required": ["id", "name", "category", "price", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An order containing drink items, customer details, status, and price",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNum": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "orderType": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["new", "preparing", "ready", "completed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "orderNum", "customerName", "customerPhone", "orderType", "items", "totalAmount", "status"]
+    }
+  },
+  "firestore": {
+    "/drinks/{drinkId}": {
+      "schema": "Drink",
+      "description": "Collection of available tea and coffee beverages in the menu"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of submitted customer orders processed in real-time"
+    }
+  }
+}
