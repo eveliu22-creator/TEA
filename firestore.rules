@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Custom helper functions
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    
+    function isAdmin() { 
+      return isSignedIn() && 
+             request.auth.token.email == 'eveliu22@gmail.com' && 
+             request.auth.token.email_verified == true;
+    }
+
+    function incoming() { 
+      return request.resource.data; 
+    }
+
+    function existing() { 
+      return resource.data; 
+    }
+
+    // Drinks Collection Rules
+    match /drinks/{drinkId} {
+      allow read: if true; // Public menu access
+      
+      allow create: if isAdmin() && 
+                    isValidId(drinkId) && 
+                    incoming().keys().hasAll(['id', 'name', 'category', 'price', 'isAvailable']) &&
+                    incoming().name is string && incoming().name.size() <= 150 &&
+                    incoming().category is string && incoming().category.size() <= 100 &&
+                    incoming().price is number && incoming().price >= 0 &&
+                    incoming().isAvailable is bool;
+                    
+      allow update: if isAdmin() && 
+                    incoming().name is string && incoming().name.size() <= 150 &&
+                    incoming().category is string && incoming().category.size() <= 100 &&
+                    incoming().price is number && incoming().price >= 0 &&
+                    incoming().isAvailable is bool;
+
+      allow delete: if isAdmin();
+    }
+
+    // Orders Collection Rules
+    match /orders/{orderId} {
+      allow get: if true; // Allow customers to retrieve their specific order details
+      allow list: if isAdmin(); // Only admins can view the full order board
+      
+      // Allow any customer to create an order
+      allow create: if isValidId(orderId) &&
+                    incoming().keys().hasAll(['id', 'orderNum', 'customerName', 'customerPhone', 'orderType', 'items', 'totalAmount', 'status', 'createdAt']) &&
+                    incoming().customerName is string && incoming().customerName.size() <= 100 &&
+                    incoming().customerPhone is string && incoming().customerPhone.size() <= 30 &&
+                    incoming().orderType is string && incoming().orderType.size() <= 20 &&
+                    incoming().totalAmount is number && incoming().totalAmount >= 0 &&
+                    incoming().status == 'new' &&
+                    incoming().items is list;
+                    
+      // Allow admins to update order statuses / notes
+      allow update: if isAdmin() && 
+                    incoming().status in ['new', 'preparing', 'ready', 'completed', 'cancelled'] &&
+                    incoming().totalAmount == existing().totalAmount; // Ensure prices are frozen on order modification
+                    
+      allow delete: if isAdmin();
+    }
+  }
+}
