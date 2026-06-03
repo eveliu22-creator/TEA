@@ -1,0 +1,8 @@
+{
+  "name": "沁羽茶作點單系統",
+  "description": "全功能茶飲實時點單系統，提供前台顧客快速選購、客製化冰量甜度與料頭加購，並透過 Firebase 雲端資料庫同步，提供後台人員即時接單看板、音聲提醒、商品庫存配置與 Recharts 營業銷售統計走勢圖。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
